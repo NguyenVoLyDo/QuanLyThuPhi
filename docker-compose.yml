@@ -1,0 +1,38 @@
+services:
+  # Dịch vụ Web chạy PHP Apache
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quanlythuphi-web
+    ports:
+      - "8080:80"  # Truy cập ứng dụng tại http://<IP_VM>:8080
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=student_fee_management
+      - DB_USER=student_user
+      - DB_PASS=SecurePassword2026!
+    depends_on:
+      - db
+    restart: always
+
+  # Dịch vụ Cơ sở dữ liệu MySQL
+  db:
+    image: mysql:8.0
+    container_name: quanlythuphi-db
+    ports:
+      - "3306:3306"  # Kết nối CSDL từ ngoài qua cổng 3306 (nếu cần)
+    environment:
+      - MYSQL_DATABASE=student_fee_management
+      - MYSQL_USER=student_user
+      - MYSQL_PASSWORD=SecurePassword2026!
+      - MYSQL_ROOT_PASSWORD=RootSecurePassword2026!
+    volumes:
+      - db_data:/var/lib/mysql
+      # Tự động import dữ liệu ban đầu khi container chạy lần đầu tiên
+      - ./code/database.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+volumes:
+  db_data:  # Lưu trữ dữ liệu MySQL bền vững không bị mất khi restart container
