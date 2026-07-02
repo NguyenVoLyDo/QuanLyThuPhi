@@ -111,7 +111,6 @@ jobs:
 
     environment:
       name: production
-      url: http://${{ secrets.SERVER_HOST }}:8080/fe/
 
     steps:
       - name: 🔐 Deploy qua SSH vào server trquyen@utt-server
