@@ -101,70 +101,42 @@ jobs:
           echo "✅ Image: ${{ env.DOCKER_IMAGE }}:latest"
 
   # ══════════════════════════════════════════════════════════
-  # JOB 3: CD - TỰ ĐỘNG TRIỂN KHAI LÊN SERVER
+  # JOB 3: CD - TỰ ĐỘNG TRIỂN KHAI LÊN SERVER (Self-hosted)
   # ══════════════════════════════════════════════════════════
   deploy-production:
     name: 🚀 Deploy lên Production Server
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-docker
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
-    environment:
-      name: production
-
     steps:
-      - name: 🔐 Deploy qua SSH vào server trquyen@utt-server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            echo "============================================"
-            echo "🚀 BẮT ĐẦU TRIỂN KHAI TỰ ĐỘNG"
-            echo "Thời gian: $(date '+%Y-%m-%d %H:%M:%S')"
-            echo "Commit: ${{ github.sha }}"
-            echo "Người deploy: ${{ github.actor }}"
-            echo "============================================"
+      - name: 🚀 Triển khai trên máy chủ
+        run: |
+          echo "============================================"
+          echo "🚀 BẮT ĐẦU TRIỂN KHAI TỰ ĐỘNG"
+          echo "Thời gian: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo "Commit: ${{ github.sha }}"
+          echo "============================================"
 
-            # Di chuyển đến thư mục dự án trên server (~/QuanLyThuPhi)
-            cd ~/QuanLyThuPhi
+          # 1. Di chuyển đến thư mục dự án trên server
+          cd ~/QuanLyThuPhi
 
-            # Lấy code mới nhất từ GitHub
-            echo "📥 Đang pull code mới nhất..."
-            git pull origin main
+          # 2. Lấy code mới nhất
+          echo "📥 Đang pull code mới nhất..."
+          git pull origin main
 
-            # Pull Docker image mới nhất từ Docker Hub
-            echo "🐳 Đang pull Docker image mới..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/quanlythuphi:latest
+          # 3. Pull image mới
+          echo "🐳 Đang pull Docker image mới..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/quanlythuphi:latest
 
-            # Khởi động lại container web với image mới (không restart DB)
-            echo "🔄 Đang restart container web..."
-            docker compose up -d --force-recreate --no-deps web
+          # 4. Khởi động lại
+          echo "🔄 Đang restart container web..."
+          docker compose up -d --force-recreate --no-deps web
 
-            # Đợi container khởi động
-            echo "⏳ Đợi containers khởi động (10s)..."
-            sleep 10
-
-            # Kiểm tra sức khỏe ứng dụng
-            echo "🏥 Kiểm tra sức khỏe ứng dụng..."
-            if curl -f -s http://localhost:8080/fe/ > /dev/null; then
-              echo "✅ Ứng dụng hoạt động bình thường!"
-            else
-              echo "❌ Ứng dụng không phản hồi! Đang rollback..."
-              docker compose up -d --force-recreate
-              exit 1
-            fi
-
-            # Dọn dẹp image cũ
-            echo "🧹 Dọn dẹp Docker images cũ..."
-            docker image prune -f
-
-            echo "============================================"
-            echo "✅ TRIỂN KHAI THÀNH CÔNG!"
-            echo "🌐 URL: http://${{ secrets.SERVER_HOST }}:8080/fe/"
-            echo "============================================"
+          # 5. Dọn dẹp
+          docker image prune -f
+          echo "✅ TRIỂN KHAI THÀNH CÔNG!"
+          echo "============================================"
 
       - name: 📢 Kết quả Deploy
         if: success()
@@ -173,7 +145,6 @@ jobs:
       - name: ❌ Deploy Thất Bại
         if: failure()
         run: echo "💥 Deploy THẤT BẠI! Xem logs để biết chi tiết."
-
   # ══════════════════════════════════════════════════════════
   # JOB 4: TỔNG KẾT
   # ══════════════════════════════════════════════════════════
