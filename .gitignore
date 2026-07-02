@@ -1,0 +1,40 @@
+# Thư mục phụ thuộc Node và kiểm thử Cypress
+/node_modules/
+/cypress/
+/cypress.config.js
+/package.json
+/package-lock.json
+
+# Báo cáo và tài liệu không liên quan đến code
+/*.docx
+/KTPM-Nhóm 10.docx
+
+# Cấu hình Apache gốc của dự án (môi trường XAMPP cục bộ, không dùng trong Docker)
+/.htaccess
+
+# IDEs và Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Thư mục uploads của người dùng (chỉ giữ cấu trúc, không push file thực tế)
+/code/be/uploads/backups/*
+!/code/be/uploads/backups/.gitkeep
+/code/be/uploads/proofs/*
+!/code/be/uploads/proofs/.gitkeep
+/code/be/uploads/settings/*
+!/code/be/uploads/settings/.gitkeep
+
+# Các file môi trường / cấu hình cục bộ
+.env
+.env.local
+.env.*.local
+.recommit.sh

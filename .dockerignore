@@ -1,0 +1,13 @@
+.git
+.vscode
+node_modules
+cypress
+cypress.config.js
+package.json
+package-lock.json
+KTPM-Nhóm 10.docx
+Dockerfile
+docker-compose.yml
+.dockerignore
+README_DOCKER.md
+README.md
