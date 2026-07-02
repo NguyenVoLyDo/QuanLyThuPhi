@@ -99,8 +99,9 @@ docker exec -i quanlythuphi-db mysql -u student_user -pSecurePassword2026! stude
 
 ## 👨‍💻 Đội Ngũ Phát Triển
 **Nhóm 10 - Quản Lý Thu Phí**
-- Nguyễn Võ Lý Do
+- Bùi Trường Quyền
+- Nguyễn Dương Sơn
 - Phạm Tiến Đạt
-- Trần Quang Quyền
+- Phạm Kiên Trung
 
 *Phát triển cho đồ án môn học - Đảm bảo chất lượng phần mềm và Triển khai tự động.*
