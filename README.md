@@ -104,4 +104,4 @@ docker exec -i quanlythuphi-db mysql -u student_user -pSecurePassword2026! stude
 - Phạm Tiến Đạt
 - Phạm Kiên Trung
 
-*Phát triển cho đồ án môn học - Đảm bảo chất lượng phần mềm và Triển khai tự động.*
+*Đồ án môn học - Quy trình và công cụ phát triển phần mềm.*
