@@ -1,113 +1,106 @@
-# Hướng Dẫn Triển Khai Chạy 24/7 Bằng Docker Trên Máy Ảo (VM)
+# 🎓 Hệ Thống Quản Lý Thu Phí Học Sinh
 
-Tài liệu này hướng dẫn từng bước cách cài đặt, chạy và quản lý ứng dụng **Quản Lý Thu Phí** trên máy ảo sử dụng Docker để hệ thống tự động duy trì hoạt động liên tục 24/7.
+[![CI/CD Pipeline](https://github.com/NguyenVoLyDo/QuanLyThuPhi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/NguyenVoLyDo/QuanLyThuPhi/actions/workflows/ci-cd.yml)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-blue?logo=docker)](https://www.docker.com/)
+[![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php)](https://www.php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql)](https://www.mysql.com/)
 
----
-
-## 1. Yêu Cầu Chuẩn Bị Trên Máy Ảo (VM)
-
-### Cài đặt Docker & Docker Compose (Ví dụ cho Ubuntu Server)
-
-Nếu máy ảo của bạn chưa cài đặt Docker, hãy SSH vào máy ảo và chạy các lệnh sau:
-
-```bash
-# Cập nhật danh sách gói tin
-sudo apt update -y && sudo apt upgrade -y
-
-# Cài đặt các gói phụ thuộc để thêm kho lưu trữ Docker
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-
-# Thêm khóa GPG chính thức của Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-# Thêm kho lưu trữ Docker vào APT sources
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Cài đặt Docker Engine và Docker Compose
-sudo apt update -y
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-# Khởi động và kích hoạt Docker khởi động cùng hệ thống
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Cho phép chạy docker mà không cần sudo (Tùy chọn - Cần relogin sau khi chạy)
-sudo usermod -aG docker $USER
-```
+Hệ thống **Quản Lý Thu Phí** là một ứng dụng web toàn diện được thiết kế để số hóa và tự động hóa quy trình quản lý, theo dõi và thu học phí tại các cơ sở giáo dục. Dự án áp dụng kiến trúc hiện đại với quy trình **CI/CD tự động** và triển khai bằng **Docker** nhằm đảm bảo tính ổn định cao nhất.
 
 ---
 
-## 2. Triển Khai Ứng Dụng
+## ✨ Tính Năng Nổi Bật
 
-### Bước 1: Tải mã nguồn lên máy ảo
-Bạn có thể sử dụng `git clone` hoặc sử dụng các công cụ truyền file (SFTP/SCP như FileZilla) để tải toàn bộ thư mục dự án lên máy ảo (ví dụ đặt tại `/home/ubuntu/QuanLyThuPhi`).
-
-### Bước 2: Khởi chạy Docker Compose
-Truy cập vào thư mục chứa dự án trên máy ảo và chạy lệnh sau để build image và chạy ứng dụng dưới chế độ nền (daemon):
-
-```bash
-docker compose up -d --build
-```
-
-**Lưu ý:**
-- Lần đầu chạy sẽ mất khoảng 1-3 phút để tải base image, cài đặt extension PHP và import cơ sở dữ liệu ban đầu từ file `code/database.sql`.
-- Thiết lập `restart: always` trong `docker-compose.yml` đảm bảo hệ thống sẽ **tự động khởi động lại** ngay cả khi hệ điều hành máy ảo bị crash, khởi động lại (reboot), hoặc các container bị lỗi đột ngột.
+- 👥 **Quản lý Học Sinh & Lớp Học:** Thêm mới, cập nhật, tìm kiếm thông tin học sinh và phân bổ lớp học dễ dàng.
+- 💰 **Quản lý Các Khoản Thu:** Định nghĩa và theo dõi các khoản phí (học phí, bảo hiểm, quỹ lớp...).
+- 📊 **Thống Kê & Báo Cáo:** Xuất báo cáo trực quan về tình hình đóng học phí, danh sách nợ phí.
+- 🔐 **Bảo Mật:** Phân quyền người dùng chặt chẽ, kiểm tra bảo mật (Security Scan) định kỳ.
+- 🚀 **Automation (CI/CD):** Tự động kiểm thử, tự động build và tự động triển khai (Zero-downtime deploy).
 
 ---
 
-## 3. Truy Cập Ứng Dụng
+## 🛠️ Công Nghệ Sử Dụng
 
-Sau khi các container khởi chạy thành công:
-- **Trang chủ Frontend:** `http://<IP_MÁY_ẢO>:8080/fe/`
-- **Backend API:** `http://<IP_MÁY_ẢO>:8080/be/`
-
-*Nếu không truy cập được, hãy kiểm tra Firewall trên máy ảo hoặc Security Group của nhà cung cấp Cloud (AWS, Azure, Google Cloud, DigitalOcean...) để đảm bảo các cổng **8080** (Web) và **3306** (Database - nếu cần) đã được mở.*
+- **Frontend:** HTML5, CSS3, JavaScript (Vanilla/jQuery)
+- **Backend:** PHP 8.2 (Thuần)
+- **Database:** MySQL 8.0
+- **DevOps:** 
+  - Docker & Docker Compose
+  - GitHub Actions (CI/CD)
+  - Self-hosted Runner
+- **Kiểm thử tự động:** Cypress (E2E Testing)
 
 ---
 
-## 4. Quản Lý Hệ Thống 24/7
+## 🚀 Hướng Dẫn Cài Đặt (Local Development)
 
-### Kiểm tra trạng thái các container
+Yêu cầu máy tính đã cài đặt **Docker** và **Docker Compose**.
+
+1. **Clone mã nguồn về máy:**
+   ```bash
+   git clone https://github.com/NguyenVoLyDo/QuanLyThuPhi.git
+   cd QuanLyThuPhi
+   ```
+
+2. **Khởi chạy hệ thống bằng Docker:**
+   ```bash
+   docker compose up -d --build
+   ```
+   *(Lần chạy đầu tiên sẽ mất 1-2 phút để tải Base Image và khởi tạo Database).*
+
+3. **Truy cập ứng dụng:**
+   - **Frontend:** [http://localhost:8080/fe/](http://localhost:8080/fe/)
+   - **Backend API:** [http://localhost:8080/be/](http://localhost:8080/be/)
+
+---
+
+## ☁️ Quy Trình CI/CD Automation
+
+Dự án áp dụng quy trình **CI/CD hoàn toàn tự động** thông qua GitHub Actions:
+
+### 1. Continuous Integration (CI)
+Mỗi khi có code mới được Push hoặc Pull Request vào nhánh `main`:
+- Tự động chạy **PHP Linting** để phát hiện lỗi cú pháp.
+- Kiểm tra tính toàn vẹn của cấu trúc file và cơ sở dữ liệu (`database.sql`).
+- Nếu có lỗi, Pipeline sẽ lập tức chặn việc deploy.
+
+### 2. Continuous Deployment (CD)
+Khi CI báo xanh (thành công):
+- GitHub Actions tự động build **Docker Image** và đẩy (push) lên **Docker Hub**.
+- Kích hoạt **Self-hosted Runner** trên máy chủ Production để tự động kéo Image mới về.
+- Tự động khởi động lại Container web mà **không làm gián đoạn Database** (Zero-downtime).
+- Chạy Health Check tự động, nếu lỗi sẽ tự động rollback.
+
+---
+
+## 🛡️ Hướng Dẫn Quản Trị Server (Production)
+
+Hệ thống được thiết kế để chạy 24/7 trên máy ảo (VM) Linux.
+
+### Xem trạng thái hệ thống:
 ```bash
 docker compose ps
+docker compose logs -f web    # Xem log của ứng dụng PHP
+docker compose logs -f db     # Xem log của MySQL
 ```
 
-### Xem log hoạt động (Hữu ích khi debug lỗi)
-```bash
-# Xem toàn bộ logs
-docker compose logs -f
-
-# Xem logs riêng của dịch vụ Web
-docker compose logs -f web
-
-# Xem logs riêng của Cơ sở dữ liệu
-docker compose logs -f db
-```
-
-### Dừng dịch vụ
-```bash
-docker compose down
-```
-
-### Khởi động lại dịch vụ
-```bash
-docker compose restart
-```
-
----
-
-## 5. Sao Lưu Và Phục Hồi Dữ Liệu (Backup & Restore)
-
-Dữ liệu CSDL MySQL được lưu trữ bền vững tại Docker Volume có tên `db_data` (không bị mất khi restart hay xóa container). Để an toàn, bạn nên lập lịch backup định kỳ.
-
-### Sao lưu Cơ sở dữ liệu (Export)
-Chạy lệnh sau trên máy ảo để xuất file SQL backup ra thư mục hiện tại:
+### Sao lưu (Backup) Database:
+Dữ liệu được lưu trữ an toàn trong Docker Volume. Để export file `.sql`:
 ```bash
 docker exec -t quanlythuphi-db mysqldump -u student_user -pSecurePassword2026! student_fee_management > backup_$(date +%F).sql
 ```
 
-### Phục hồi Cơ sở dữ liệu (Import)
-Chạy lệnh sau để import dữ liệu từ file SQL vào container:
+### Khôi phục (Restore) Database:
 ```bash
 docker exec -i quanlythuphi-db mysql -u student_user -pSecurePassword2026! student_fee_management < backup_file.sql
 ```
+
+---
+
+## 👨‍💻 Đội Ngũ Phát Triển
+**Nhóm 10 - Quản Lý Thu Phí**
+- Nguyễn Võ Lý Do
+- Phạm Tiến Đạt
+- Trần Quang Quyền
+
+*Phát triển cho đồ án môn học - Đảm bảo chất lượng phần mềm và Triển khai tự động.*
