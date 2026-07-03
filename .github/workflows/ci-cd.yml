@@ -1,0 +1,136 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+env:
+  COMPOSE_PROJECT_NAME: quanlythuphi_ci
+  CI_COMPOSE: docker compose -f docker-compose.ci.yml
+
+jobs:
+  ci:
+    name: Check and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - name: Check PHP syntax
+        run: find code -name "*.php" -print0 | xargs -0 -n 1 php -l
+
+      - name: Validate production Docker Compose file
+        run: docker compose -f docker-compose.yml config
+
+      - name: Validate CI Docker Compose file
+        run: $CI_COMPOSE config
+
+      - name: Build Docker image
+        run: $CI_COMPOSE build --pull
+
+      - name: Start application stack
+        run: $CI_COMPOSE up -d
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..60}; do
+            if $CI_COMPOSE exec -T db sh -c 'mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent'; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          $CI_COMPOSE logs db
+          exit 1
+
+      - name: Smoke test web application
+        run: |
+          for i in {1..60}; do
+            if curl --fail --silent --show-error http://localhost:18080/fe/index.php?action=login > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          $CI_COMPOSE logs web
+          exit 1
+
+      - name: Show container status
+        if: always()
+        run: $CI_COMPOSE ps
+
+      - name: Stop application stack
+        if: always()
+        run: $CI_COMPOSE down -v
+
+  cd:
+    name: Deploy to VM
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
+
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      DEPLOY_BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - name: Check deployment configuration
+        run: |
+          missing=0
+
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "::warning::$name is not configured. Skipping deployment."
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 1 ]; then
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+          else
+            echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy over SSH
+        if: env.DEPLOY_READY == 'true'
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          printf "%s\n" "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "APP_DIR='$DEPLOY_PATH' DEPLOY_BRANCH='$DEPLOY_BRANCH' bash -s" <<'EOF'
+          set -euo pipefail
+
+          cd "$APP_DIR"
+          git fetch origin "$DEPLOY_BRANCH"
+          git checkout "$DEPLOY_BRANCH"
+          git pull --ff-only origin "$DEPLOY_BRANCH"
+
+          docker compose up -d --build --remove-orphans
+          docker image prune -f
+          docker compose ps
+          EOF

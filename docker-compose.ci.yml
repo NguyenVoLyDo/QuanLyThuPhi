@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quanlythuphi-ci-web
+    ports:
+      - "18080:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=student_fee_management
+      - DB_USER=student_user
+      - DB_PASS=SecurePassword2026!
+    depends_on:
+      - db
+    restart: "no"
+
+  db:
+    image: mysql:8.0
+    container_name: quanlythuphi-ci-db
+    ports:
+      - "13306:3306"
+    environment:
+      - MYSQL_DATABASE=student_fee_management
+      - MYSQL_USER=student_user
+      - MYSQL_PASSWORD=SecurePassword2026!
+      - MYSQL_ROOT_PASSWORD=RootSecurePassword2026!
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./code/database.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: "no"
+
+volumes:
+  db_data:
+    name: quanlythuphi_ci_db_data
